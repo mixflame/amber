@@ -10,11 +10,11 @@ module Amber::WebSockets::Adapters
       
     end
 
-    def self.subscribed
+    def subscribed
       @@subscribed
     end
 
-    def self.subscribed=(value)
+    def subscribed=(value)
       @@subscribed = value
     end
 
