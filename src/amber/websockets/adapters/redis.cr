@@ -26,10 +26,10 @@ module Amber::WebSockets::Adapters
       spawn do
         while true
           Fiber.yield
-          if self.subscribed == true
-            to_subscribe = SUBSCRIBE_CHANNEL.receive
-            @subscriber.subscribe(to_subscribe)
-          end
+          # if self.subscribed == true
+          to_subscribe = SUBSCRIBE_CHANNEL.receive
+          @subscriber.subscribe(to_subscribe)
+          # end
         end
       end
     end
