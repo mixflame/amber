@@ -39,7 +39,7 @@ module Amber::WebSockets::Adapters
               msg = JSON.parse(m)
               sender_id = msg["sender"].as_s
               message = msg["msg"]
-              topic = msg["topic"].split(":").first
+              topic = msg["topic"].to_s.split(":").first
               @listeners[topic].call(sender_id, message)
             end
           end
