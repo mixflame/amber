@@ -21,6 +21,7 @@ module Amber::WebSockets::Adapters
           if @subscribed == true
             to_subscribe = SUBSCRIBE_CHANNEL.receive
             @subscriber.subscribe(to_subscribe)
+            @subscribed = true
           end
         end
       end
