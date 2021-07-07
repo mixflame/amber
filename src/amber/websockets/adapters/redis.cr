@@ -4,7 +4,8 @@ module Amber::WebSockets::Adapters
     @subscriber : Redis
     @publisher : Redis
     @listeners : Hash(String,Proc(String, JSON::Any, Nil)) = Hash(String, Proc(String, JSON::Any, Nil)).new
-
+    @@subscribed : Bool = false
+    
     def self.instance
       @@instance ||= new
       
