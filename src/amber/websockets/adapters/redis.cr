@@ -43,12 +43,10 @@ module Amber::WebSockets::Adapters
     def on_message(topic_path, listener)
       @listeners[topic_path] = listener
       spawn do
-        Fiber.yield
         begin
           @subscriber.subscribe(topic_path) do |on|
             Fiber.yield
             on.message do |_, m|
-              Fiber.yield
               msg = JSON.parse(m)
               sender_id = msg["sender"].as_s
               message = msg["msg"]
@@ -56,12 +54,10 @@ module Amber::WebSockets::Adapters
               @listeners[topic].call(sender_id, message)
             end
             on.subscribe do |channel, subscription|
-              Fiber.yield
               Log.info { "Subscribed to channel #{channel}" }
               self.subscribed = true
             end
             on.unsubscribe do |channel, subscription|
-              Fiber.yield
               Log.info { "Unsubscribed from channel #{channel}" }
               self.subscribed = false
             end
