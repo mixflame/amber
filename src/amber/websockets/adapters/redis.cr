@@ -43,12 +43,13 @@ module Amber::WebSockets::Adapters
               message = msg["msg"]
               topic = message["topic"].to_s.split(":").first
               @listeners[topic].call(sender_id, message)
+            end
             on.subscribe do |channel, subscription|
-              Log.info("Subscribed to channel #{channel}")
+              Log.info { "Subscribed to channel #{channel}" }
               @subscribed = true
             end
             on.unsubscribe do |channel, subscription|
-              Log.info("Unsubscribed from channel #{channel}")
+              Log.info { "Unsubscribed from channel #{channel}" }
               @subscribed = false
             end
           end
