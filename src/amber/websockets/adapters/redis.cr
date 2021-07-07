@@ -4,19 +4,11 @@ module Amber::WebSockets::Adapters
     @subscriber : Redis
     @publisher : Redis
     @listeners : Hash(String,Proc(String, JSON::Any, Nil)) = Hash(String, Proc(String, JSON::Any, Nil)).new
-    @@subscribed : Bool = false
+    property subscribed : Bool = false
     
     def self.instance
       @@instance ||= new
       
-    end
-
-    def subscribed
-      @@subscribed
-    end
-
-    def subscribed=(value)
-      @@subscribed = value
     end
 
     # Establish subscribe and publish connections to Redis
@@ -26,10 +18,10 @@ module Amber::WebSockets::Adapters
       spawn do
         while true
           Fiber.yield
-          # if self.subscribed == true
-          to_subscribe = SUBSCRIBE_CHANNEL.receive
-          @subscriber.subscribe(to_subscribe)
-          # end
+          if @subscribed == true
+            to_subscribe = SUBSCRIBE_CHANNEL.receive
+            @subscriber.subscribe(to_subscribe)
+          end
         end
       end
     end
@@ -43,7 +35,7 @@ module Amber::WebSockets::Adapters
     def on_message(topic_path, listener)
       @listeners[topic_path] = listener
       spawn do
-        begin
+        if @subscribed == false
           @subscriber.subscribe(topic_path) do |on|
             Fiber.yield
             on.message do |_, m|
@@ -55,14 +47,14 @@ module Amber::WebSockets::Adapters
             end
             on.subscribe do |channel, subscription|
               Log.info { "Subscribed to channel #{channel}" }
-              self.subscribed = true
+              @subscribed = true
             end
             on.unsubscribe do |channel, subscription|
               Log.info { "Unsubscribed from channel #{channel}" }
-              self.subscribed = false
+              @subscribed = false
             end
           end
-        rescue # only happens if crystal-redis is already subscribed to a channel
+        else # only happens if crystal-redis is already subscribed to a channel
           Log.info { "Subscribing to #{topic_path} via Crystal Channel"}
           SUBSCRIBE_CHANNEL.send(topic_path)
         end
