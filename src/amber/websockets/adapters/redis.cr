@@ -14,6 +14,14 @@ module Amber::WebSockets::Adapters
     def initialize
       @subscriber = Redis.new(url: Amber.settings.redis_url)
       @publisher = Redis.new(url: Amber.settings.redis_url)
+
+      spawn do
+        while true
+          Fiber.yield
+          to_subscribe = SUBSCRIBE_CHANNEL.receive
+          @subscriber.subscribe(to_subscribe)
+        end
+      end
     end
 
     # Publish the *message* to the redis publisher with topic *topic_path*
