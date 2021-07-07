@@ -21,6 +21,9 @@ module Amber
     #   end
     # end
     # ```
+
+    SUBSCRIBE_CHANNEL = ::Channel(String).new
+
     abstract class Channel
       @@adapter : WebSockets::Adapters::RedisAdapter? | WebSockets::Adapters::MemoryAdapter?
       @topic_path : String
