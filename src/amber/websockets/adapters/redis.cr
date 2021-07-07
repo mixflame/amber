@@ -59,7 +59,7 @@ module Amber::WebSockets::Adapters
             end
           end
         else # only happens if crystal-redis is already subscribed to a channel
-          Fiber.yield
+          # Fiber.yield
           Log.info { "Subscribing to #{topic_path} via Crystal Channel"}
           SUBSCRIBE_CHANNEL.send(topic_path)
         end
