@@ -39,6 +39,7 @@ module Amber::WebSockets::Adapters
           @subscriber.subscribe(topic_path) do |on|
             Fiber.yield
             on.message do |_, m|
+              Fiber.yield
               msg = JSON.parse(m)
               sender_id = msg["sender"].as_s
               message = msg["msg"]
@@ -46,15 +47,18 @@ module Amber::WebSockets::Adapters
               @listeners[topic].call(sender_id, message)
             end
             on.subscribe do |channel, subscription|
+              Fiber.yield
               Log.info { "Subscribed to channel #{channel}" }
               @subscribed = true
             end
             on.unsubscribe do |channel, subscription|
+              Fiber.yield
               Log.info { "Unsubscribed from channel #{channel}" }
               @subscribed = false
             end
           end
         else # only happens if crystal-redis is already subscribed to a channel
+          Fiber.yield
           Log.info { "Subscribing to #{topic_path} via Crystal Channel"}
           SUBSCRIBE_CHANNEL.send(topic_path)
         end
