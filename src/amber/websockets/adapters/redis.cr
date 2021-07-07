@@ -14,14 +14,6 @@ module Amber::WebSockets::Adapters
     def initialize
       @subscriber = Redis.new(url: Amber.settings.redis_url)
       @publisher = Redis.new(url: Amber.settings.redis_url)
-
-      spawn do
-        while true
-          Fiber.yield
-          to_subscribe = SUBSCRIBE_CHANNEL.receive
-          @subscriber.subscribe(to_subscribe)
-        end
-      end
     end
 
     # Publish the *message* to the redis publisher with topic *topic_path*
@@ -39,7 +31,7 @@ module Amber::WebSockets::Adapters
               msg = JSON.parse(m)
               sender_id = msg["sender"].as_s
               message = msg["msg"]
-              topic = msg["topic"].to_s.split(":").first
+              topic = message["topic"].to_s.split(":").first
               @listeners[topic].call(sender_id, message)
             end
           end
