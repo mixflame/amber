@@ -4,7 +4,7 @@ module Amber::WebSockets::Adapters
     @subscriber : Redis
     @publisher : Redis
     @listeners : Hash(String,Proc(String, JSON::Any, Nil)) = Hash(String, Proc(String, JSON::Any, Nil)).new
-
+    @subscribed : Bool = false
 
     def self.instance
       @@instance ||= new
@@ -18,8 +18,10 @@ module Amber::WebSockets::Adapters
       spawn do
         while true
           Fiber.yield
-          to_subscribe = SUBSCRIBE_CHANNEL.receive
-          @subscriber.subscribe(to_subscribe)
+          if @subscribed == true
+            to_subscribe = SUBSCRIBE_CHANNEL.receive
+            @subscriber.subscribe(to_subscribe)
+          end
         end
       end
     end
@@ -41,9 +43,16 @@ module Amber::WebSockets::Adapters
               message = msg["msg"]
               topic = message["topic"].to_s.split(":").first
               @listeners[topic].call(sender_id, message)
+            on.subscribe do |channel, subscription|
+              Log.info("Subscribed to channel #{channel}")
+              @subscribed = true
+            end
+            on.unsubscribe do |channel, subscription|
+              Log.info("Unsubscribed from channel #{channel}")
+              @subscribed = false
             end
           end
-        rescue
+        rescue # only happens if crystal-redis is already subscribed to a channel
           SUBSCRIBE_CHANNEL.send(topic_path)
         end
       end
